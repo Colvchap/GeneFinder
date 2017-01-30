@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-YOUR HEADER COMMENT HERE
+Project 1
+We are finding genes in nucleotide sequences of DNA
 
-@author: YOUR NAME HERE
+We were given the following list of functions with words describing what how
+they should perform. However, when this was given to me, the definitions
+contained no code, so everything written before a #TODO is my original
+work.
+
+While some of the variables have humorous names, this simple program is
+extremely applicable to the real world through modern biology and genome
+mapping.
+
+@author: Colvin Chapaman
 
 """
 
@@ -30,6 +40,14 @@ def get_complement(nucleotide):
     >>> get_complement('C')
     'G'
     """
+    if nucleotide == 'A':
+        return 'T'
+    elif nucleotide == 'T':
+        return 'A'
+    elif nucleotide == 'C':
+        return'G'
+    elif nucleotide == 'G':
+        return 'C'
     # TODO: implement this
     pass
 
@@ -45,6 +63,13 @@ def get_reverse_complement(dna):
     >>> get_reverse_complement("CCGCGTTCA")
     'TGAACGCGG'
     """
+    i = -1
+    AND = ''        # because AND is DNA backwards -"and" is something special
+    for letter in dna:
+        Complement = get_complement(dna[i])
+        AND = AND + Complement
+        i += -1
+    return AND
     # TODO: implement this
     pass
 
@@ -54,7 +79,6 @@ def rest_of_ORF(dna):
         codon and returns the sequence up to but not including the
         first in frame stop codon.  If there is no in frame stop codon,
         returns the whole string.
-
         dna: a DNA sequence
         returns: the open reading frame represented as a string
     >>> rest_of_ORF("ATGTGAA")
@@ -62,6 +86,22 @@ def rest_of_ORF(dna):
     >>> rest_of_ORF("ATGAGATAGG")
     'ATGAGA'
     """
+    separate_dna = []
+    for nucleotide in dna:          # constructs list of nucleotides
+        separate_dna.append(nucleotide)
+    p = 0
+    three_prime_end = ''
+    while True:
+        if len(dna) - p <= 2:
+                return dna
+        else:
+            codon = separate_dna[p] + separate_dna[p+1] + separate_dna[p+2]
+
+            if codon == "TAG" or codon == "TAA" or codon == "TGA":
+                if p >= 3:
+                    return three_prime_end
+            p += 3
+            three_prime_end = three_prime_end + codon
     # TODO: implement this
     pass
 
@@ -79,6 +119,24 @@ def find_all_ORFs_oneframe(dna):
     >>> find_all_ORFs_oneframe("ATGCATGAATGTAGATAGATGTGCCC")
     ['ATGCATGAATGTAGA', 'ATGTGCCC']
     """
+    p = 0                 # Position Index
+    ORFs = []             # List of ORFs
+    n = 0                 # number of ORFs found
+    flag = 'go'           # the loop keeps going until ending procedure
+
+    while flag == 'go':
+        if p+3 >= len(dna):     # Ending Procedure
+            return ORFs
+
+        codon = dna[p:p+3]
+
+        if codon == 'ATG':
+            ORFs.append(rest_of_ORF(dna[p:len(dna)]))
+            p += len(ORFs[n])
+            n += 1
+
+        p += 3          # Shift position to new codon
+
     # TODO: implement this
     pass
 
@@ -96,6 +154,29 @@ def find_all_ORFs(dna):
     >>> find_all_ORFs("ATGCATGAATGTAG")
     ['ATGCATGAATGTAG', 'ATGAATGTAG', 'ATG']
     """
+    ORFerLord = []
+    ORF_F1 = find_all_ORFs_oneframe(dna)
+    ORF_F2 = find_all_ORFs_oneframe(dna[1:])
+    ORF_F3 = find_all_ORFs_oneframe(dna[2:])
+
+    i = 0
+    i1 = 0
+    i2 = 0
+
+    for ORF in ORF_F1:
+        ORFerLord.append(ORF_F1[i])
+        i += 1
+
+    for ORF in ORF_F2:
+        ORFerLord.append(ORF_F2[i1])
+        i1 += 1
+
+    for ORF in ORF_F1:
+        ORFerLord.append(ORF_F3[i2])
+        i2 += 1
+
+    return ORFerLord
+
     # TODO: implement this
     pass
 
@@ -109,6 +190,13 @@ def find_all_ORFs_both_strands(dna):
     >>> find_all_ORFs_both_strands("ATGCGAATGTAGCATCAAA")
     ['ATGCGAATG', 'ATGCTACATTCGCAT']
     """
+    AND = get_reverse_complement(dna)       # Backwards DNA (AKA Compliment)
+
+    ORF_dna = find_all_ORFs(dna)
+    ORF_AND = find_all_ORFs(AND)
+    MasterORFerLord = [ORF_dna, ORF_AND]
+
+    return MasterORFerLord
     # TODO: implement this
     pass
 
@@ -161,6 +249,9 @@ def gene_finder(dna):
     # TODO: implement this
     pass
 
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+    #doctest.run_docstring_examples(find_all_ORFs_oneframe, globals(),
+    # verbose=True)
