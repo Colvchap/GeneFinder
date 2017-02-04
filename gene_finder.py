@@ -5,8 +5,7 @@ We are finding genes in nucleotide sequences of DNA
 
 We were given the following list of functions with words describing what how
 they should perform. However, when this was given to me, the definitions
-contained no code, so everything written before a #TODO is my original
-work.
+contained no code, so everything written inside a function is my original work.
 
 While some of the variables have humorous names, this simple program is
 extremely applicable to the real world through modern biology and genome
@@ -48,8 +47,6 @@ def get_complement(nucleotide):
         return'G'
     elif nucleotide == 'G':
         return 'C'
-    # TODO: implement this
-    pass
 
 
 def get_reverse_complement(dna):
@@ -70,8 +67,6 @@ def get_reverse_complement(dna):
         AND = AND + Complement
         i += -1
     return AND
-    # TODO: implement this
-    pass
 
 
 def rest_of_ORF(dna):
@@ -102,8 +97,6 @@ def rest_of_ORF(dna):
                     return three_prime_end
             p += 3
             three_prime_end = three_prime_end + codon
-    # TODO: implement this
-    pass
 
 
 def find_all_ORFs_oneframe(dna):
@@ -128,7 +121,7 @@ def find_all_ORFs_oneframe(dna):
         if p+3 >= len(dna):     # Ending Procedure
             return ORFs
 
-        codon = dna[p:p+3]
+        codon = dna[p: p+3]
 
         if codon == 'ATG':
             ORFs.append(rest_of_ORF(dna[p:len(dna)]))
@@ -136,9 +129,6 @@ def find_all_ORFs_oneframe(dna):
             n += 1
 
         p += 3          # Shift position to new codon
-
-    # TODO: implement this
-    pass
 
 
 def find_all_ORFs(dna):
@@ -171,19 +161,16 @@ def find_all_ORFs(dna):
         ORFerLord.append(ORF_F2[i1])
         i1 += 1
 
-    for ORF in ORF_F1:
+    for ORF in ORF_F3:
         ORFerLord.append(ORF_F3[i2])
         i2 += 1
 
     return ORFerLord
 
-    # TODO: implement this
-    pass
-
 
 def find_all_ORFs_both_strands(dna):
-    """ Finds all non-nested open reading frames in the given DNA sequence on both
-        strands.
+    """ Finds all non-nested open reading frames in the given DNA sequence on
+    both strands.
 
         dna: a DNA sequence
         returns: a list of non-nested ORFs
@@ -194,21 +181,25 @@ def find_all_ORFs_both_strands(dna):
 
     ORF_dna = find_all_ORFs(dna)
     ORF_AND = find_all_ORFs(AND)
-    MasterORFerLord = [ORF_dna, ORF_AND]
-
+    MasterORFerLord = ORF_dna
+    for i in ORF_AND:
+        MasterORFerLord.append(i)
     return MasterORFerLord
-    # TODO: implement this
-    pass
 
 
 def longest_ORF(dna):
-    """ Finds the longest ORF on both strands of the specified DNA and returns it
-        as a string
+    """ Finds the longest ORF on both strands of the specified DNA and returns
+     it as a string
     >>> longest_ORF("ATGCGAATGTAGCATCAAA")
     'ATGCTACATTCGCAT'
     """
-    # TODO: implement this
-    pass
+
+    list_of_ORFs = find_all_ORFs_both_strands(dna)
+    longest_so_far = list_of_ORFs[0]
+    for ORF in list_of_ORFs:
+        if len(ORF) > len(longest_so_far):
+            longest_so_far = ORF
+    return longest_so_far
 
 
 def longest_ORF_noncoding(dna, num_trials):
@@ -217,9 +208,34 @@ def longest_ORF_noncoding(dna, num_trials):
 
         dna: a DNA sequence
         num_trials: the number of random shuffles
-        returns: the maximum length longest ORF """
-    # TODO: implement this
-    pass
+        returns: the maximum length longest ORF
+
+        A doctest doesn't work for this function since the ouput can't be right
+        or wrong. however, you can look at the output and asses whether the
+        function is working and makes sense.
+
+        After 5 simulations of 100 trials
+        the ouput of the simulations were:
+
+                107, 109, 104, 106, and 104
+
+        It would be extremely safe to conclude that an open reading frame of
+        dna greater than 120 nucleotide pairs is not random dna. Instead it
+        must code for an actual protein.
+
+        I also did some research, and found that well over 99 percent of dna
+        that codes for protein is over 120 nucleotide pairs.
+        """
+    longest_ORF_so_far = 0
+
+    for trial in range(num_trials):
+        scrambled_strand = shuffle_string(dna)
+        longest_in_trial = len(longest_ORF(scrambled_strand))
+
+        if longest_in_trial > longest_ORF_so_far:
+            longest_ORF_so_far = longest_in_trial
+
+    return longest_ORF_so_far
 
 
 def coding_strand_to_AA(dna):
@@ -236,22 +252,58 @@ def coding_strand_to_AA(dna):
         >>> coding_strand_to_AA("ATGCCCGCTTT")
         'MPA'
     """
-    # TODO: implement this
-    pass
+    aa_sequence = ''
+    p = 0
+    while p <= len(dna) - 3:
+        codon = dna[p: p + 3]
+        acid = aa_table[codon]
+        aa_sequence = aa_sequence + acid
+
+        p += 3
+
+    return aa_sequence
 
 
 def gene_finder(dna):
-    """ Returns the amino acid sequences that are likely coded by the specified dna
+    """ Returns the amino acid sequences that are likely coded by the specified
+     dna
 
         dna: a DNA sequence
         returns: a list of all amino acid sequences coded by the sequence dna.
-    """
-    # TODO: implement this
-    pass
 
+        This function is also untestable using a doctest sicne there is no
+        "right" answer.
+
+        However, a form of validation is comparing the output from some known
+        dna with some known amino acid sequences.
+    """
+    possible_genes = find_all_ORFs_both_strands(dna)
+    thresh_hold = longest_ORF_noncoding(dna, 10)
+    actual_genes = []
+    protein_aa = []
+
+    for i in range(len(possible_genes)-1):
+        if len(possible_genes[i]) > thresh_hold:
+            actual_genes.append(possible_genes[i])
+
+    for o in range(len(actual_genes)):
+        singe_aa_chain = coding_strand_to_AA(actual_genes[o])
+        protein_aa.append(singe_aa_chain)
+    return protein_aa
+
+
+"""
+'''
+    "This is the doctest secion. it can be uncommented to run a test of an
+    individual function or all functions at the same time "
+'''
 
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
-    #doctest.run_docstring_examples(find_all_ORFs_oneframe, globals(),
-    # verbose=True)
+    doctest.testmod(verbose=True)
+    # doctest.run_docstring_examples(longest_ORF, globals(), verbose=True)
+"""
+
+
+dna = load_seq("./data/X73525.fa")
+print(gene_finder(dna))
